@@ -14,6 +14,9 @@ export function setupAutoUpdater(): void {
   // Разрешаем проверку обновлений в режиме разработки (для тестирования)
   autoUpdater.forceDevUpdateConfig = true
   
+  // Агрессивно отключаем проверку подписи кода
+  autoUpdater.verifyUpdateCodeSignature = false
+  
   // Программно настраиваем URL для GitHub релизов (без имени файла)
   const updateUrl = 'https://github.com/KhomenkoRoman/ElectronPosApp/releases/latest/download/'
   autoUpdater.setFeedURL(updateUrl)
