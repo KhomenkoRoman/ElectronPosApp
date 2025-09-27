@@ -1,4 +1,4 @@
-import { dialog, app } from 'electron'
+import { dialog, app, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { exec } from 'child_process'
 
@@ -23,13 +23,10 @@ export function setupAutoUpdater(): void {
             autoUpdater.allowPrerelease = false // Только стабильные релизы
             autoUpdater.allowDowngrade = false // Не разрешаем откат версий
             
-            // Отключаем проверку подписи кода для разработки
-            if (!app.isPackaged || process.env.NODE_ENV === 'development') {
-              autoUpdater.requestHeaders = {
-                'User-Agent': 'electron-updater'
-              }
-              // Для не подписанных приложений отключаем проверку подписи
-              autoUpdater.verifyUpdateCodeSignature = false
+            // Полностью отключаем проверку подписи кода для всех случаев
+            autoUpdater.verifyUpdateCodeSignature = false
+            autoUpdater.requestHeaders = {
+              'User-Agent': 'electron-updater'
             }
           }
   
@@ -108,7 +105,7 @@ export function setupAutoUpdater(): void {
 
   // Обработчик завершения загрузки
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('Обновление загружено')
+    console.log('[AutoUpdater] Обновление загружено')
 
     const dialogOpts = {
       type: 'info' as const,
@@ -128,32 +125,34 @@ export function setupAutoUpdater(): void {
           window.destroy()
         })
         
-        // Пробуем установить обновление
+        // Пробуем установить обновление с принудительными параметрами
         try {
-          autoUpdater.quitAndInstall(false, true)
+          console.log('[AutoUpdater] Установка обновления...')
+          // Принудительная установка без проверки подписи
+          autoUpdater.quitAndInstall(true, true)
         } catch (error) {
           console.error('[AutoUpdater] Ошибка при установке обновления:', error)
-        }
-        
-        // Альтернативный способ - перезапуск через shell
-        setTimeout(() => {
-          console.log('[AutoUpdater] Принудительный перезапуск...')
           
-          // Для macOS - запускаем приложение заново
+          // Если не удалось установить автоматически, пробуем альтернативный способ
+          console.log('[AutoUpdater] Попытка альтернативной установки...')
+          
+          // Для macOS - открываем новую версию напрямую
           if (process.platform === 'darwin') {
-            const appPath = process.execPath
-            exec(`open "${appPath}"`, (error) => {
+            const newAppPath = `/Applications/electronposapp.app`
+            exec(`open "${newAppPath}"`, (error) => {
               if (error) {
-                console.error('[AutoUpdater] Ошибка перезапуска:', error)
+                console.error('[AutoUpdater] Ошибка открытия новой версии:', error)
+                // Открываем GitHub релизы как последний вариант
+                shell.openExternal('https://github.com/KhomenkoRoman/ElectronPosApp/releases')
               } else {
-                console.log('[AutoUpdater] Приложение перезапущено')
+                console.log('[AutoUpdater] Новая версия запущена')
+                app.quit()
               }
             })
+          } else {
+            app.quit()
           }
-          
-          // Выходим из текущего процесса
-          app.quit()
-        }, 2000)
+        }
       }
     })
   })
@@ -203,6 +202,9 @@ export function manualCheckForUpdates(): void {
     autoUpdater.setFeedURL(updateUrl)
     console.log('[AutoUpdater] URL обновлен для режима разработки:', updateUrl)
   }
+  
+  // Принудительно отключаем проверку подписи для ручной проверки
+  autoUpdater.verifyUpdateCodeSignature = false
   
   checkForUpdates()
 }
