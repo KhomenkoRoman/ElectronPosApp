@@ -84,7 +84,23 @@ echo "💾 Создаем коммит с обновленной версией.
 git add package.json
 git commit -m "chore: bump version to $VERSION"
 
-# Создаем тег
+# Проверяем и удаляем существующий тег
+if git tag -l | grep -q "^v$VERSION$"; then
+    echo "⚠️  Тег v$VERSION уже существует. Удаляем его..."
+    
+    # Удаляем локальный тег
+    git tag -d "v$VERSION"
+    
+    # Удаляем тег на GitHub (если существует)
+    if git ls-remote --tags origin | grep -q "refs/tags/v$VERSION$"; then
+        echo "🗑️  Удаляем тег v$VERSION с GitHub..."
+        git push origin :refs/tags/v$VERSION
+    fi
+    
+    echo "✅ Тег v$VERSION удален"
+fi
+
+# Создаем новый тег
 echo "🏷️  Создаем тег v$VERSION..."
 git tag "v$VERSION"
 
@@ -125,9 +141,8 @@ echo "✅ Сборка завершена!"
 echo "📁 Файлы сборки находятся в папке dist/"
 
 # Создаем релиз на GitHub и загружаем файлы
-echo "📢 Создаем релиз на GitHub и загружаем файлы..."
+echo "📢 Создаем релиз v$VERSION на GitHub и загружаем файлы..."
 
-# Создаем релиз через GitHub CLI или API
 if command -v gh &> /dev/null; then
     echo "🚀 Создаем релиз через GitHub CLI..."
     
@@ -165,13 +180,15 @@ if command -v gh &> /dev/null; then
     if [ -n "$FILES" ]; then
         gh release create "v$VERSION" \
             --title "Release v$VERSION" \
-            --notes "Release v$VERSION" \
+            --notes "Release v$VERSION - автоматически созданный релиз" \
             $FILES
+        echo "✅ Релиз v$VERSION создан и файлы загружены"
     else
         echo "⚠️  Файлы для загрузки не найдены в dist/"
         gh release create "v$VERSION" \
             --title "Release v$VERSION" \
-            --notes "Release v$VERSION"
+            --notes "Release v$VERSION - автоматически созданный релиз"
+        echo "✅ Релиз v$VERSION создан без файлов"
     fi
 else
     echo "⚠️  GitHub CLI не установлен. Создайте релиз вручную:"
@@ -179,6 +196,8 @@ else
     echo "📁 Загрузите файлы из папки dist/"
 fi
 
-echo "🎉 Релиз v$VERSION успешно опубликован!"
+echo "🎉 Релиз v$VERSION успешно создан и опубликован!"
+echo "🏷️  Тег v$VERSION создан на GitHub"
+echo "📁 Файлы загружены в релиз"
 echo "🔗 Проверьте релиз: https://github.com/KhomenkoRoman/ElectronPosApp/releases"
 echo "📋 Проверьте статус: https://github.com/KhomenkoRoman/ElectronPosApp/actions"
