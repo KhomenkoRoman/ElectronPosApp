@@ -1,9 +1,22 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - mac
+          - win
+          - linux
 
 jobs:
   release:
@@ -11,7 +24,13 @@ jobs:
     
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
         
     steps:
       - name: Checkout code
@@ -29,9 +48,18 @@ jobs:
       - name: Build application
         run: npm run build
         
-      - name: Build and publish
-        uses: electron-userland/electron-builder-action@v1
+      - name: Build for ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            npm run build:mac
+          elif [ "${{ matrix.platform }}" = "win" ]; then
+            npm run build:win
+          elif [ "${{ matrix.platform }}" = "linux" ]; then
+            npm run build:linux
+          fi
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish: always
-          config: electron-builder.yml
+          name: ${{ matrix.platform }}-build-${{ github.event.inputs.version }}
+          path: dist/

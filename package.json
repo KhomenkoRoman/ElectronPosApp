@@ -1,6 +1,6 @@
 {
   "name": "electronposapp",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "An Electron POS application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -22,7 +22,8 @@
     "release": "npm run build && electron-builder --publish=always",
     "release:win": "npm run build && electron-builder --win --publish=always",
     "release:mac": "npm run build && electron-builder --mac --publish=always",
-    "release:linux": "npm run build && electron-builder --linux --publish=always"
+    "release:linux": "npm run build && electron-builder --linux --publish=always",
+    "build-and-release": "./scripts/build-and-release.sh"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
