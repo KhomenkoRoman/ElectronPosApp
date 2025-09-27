@@ -45,6 +45,19 @@ export function setupAutoUpdater(): void {
   autoUpdater.on('update-not-available', (info) => {
     console.log('[AutoUpdater] Обновления не найдены')
     console.log('[AutoUpdater] Текущая версия:', info.version)
+    
+    // Показываем уведомление пользователю
+    const dialogOpts = {
+      type: 'info' as const,
+      buttons: ['OK'],
+      title: 'Проверка обновлений',
+      message: 'Установлена актуальная версия',
+      detail: `Версия ${info.version} является последней доступной версией.`
+    }
+
+    dialog.showMessageBox(dialogOpts).then(() => {
+      console.log('[AutoUpdater] Пользователь уведомлен о актуальной версии')
+    })
   })
 
   // Обработчик ошибок
@@ -52,6 +65,19 @@ export function setupAutoUpdater(): void {
     console.error('[AutoUpdater] Ошибка при проверке обновлений:', err)
     console.error('[AutoUpdater] Детали ошибки:', err.message)
     console.error('[AutoUpdater] Stack trace:', err.stack)
+    
+    // Показываем уведомление пользователю об ошибке
+    const dialogOpts = {
+      type: 'error' as const,
+      buttons: ['OK'],
+      title: 'Ошибка проверки обновлений',
+      message: 'Не удалось проверить обновления',
+      detail: `Ошибка: ${err.message}. Проверьте подключение к интернету и попробуйте позже.`
+    }
+
+    dialog.showMessageBox(dialogOpts).then(() => {
+      console.log('[AutoUpdater] Пользователь уведомлен об ошибке')
+    })
   })
 
   // Обработчик прогресса загрузки
