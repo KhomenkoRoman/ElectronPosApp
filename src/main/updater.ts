@@ -1,5 +1,6 @@
-import { dialog } from 'electron'
+import { dialog, app } from 'electron'
 import { autoUpdater } from 'electron-updater'
+import { exec } from 'child_process'
 
 /**
  * Настройка и инициализация автообновления
@@ -9,6 +10,12 @@ export function setupAutoUpdater(): void {
   autoUpdater.checkForUpdatesAndNotify = false // Отключаем автоматические уведомления
   autoUpdater.autoDownload = true // Автоматически загружаем обновления
   autoUpdater.autoInstallOnAppQuit = true // Автоматически устанавливаем при выходе
+  
+  // Дополнительные настройки для macOS
+  if (process.platform === 'darwin') {
+    autoUpdater.allowPrerelease = false // Только стабильные релизы
+    autoUpdater.allowDowngrade = false // Не разрешаем откат версий
+  }
   
   // Логирование для отладки
   autoUpdater.logger = {
@@ -58,7 +65,40 @@ export function setupAutoUpdater(): void {
 
     dialog.showMessageBox(dialogOpts).then((returnValue) => {
       if (returnValue.response === 0) {
-        autoUpdater.quitAndInstall()
+        console.log('[AutoUpdater] Перезапуск приложения...')
+        
+        // Принудительно закрываем все окна
+        const { BrowserWindow } = require('electron')
+        BrowserWindow.getAllWindows().forEach(window => {
+          window.destroy()
+        })
+        
+        // Пробуем установить обновление
+        try {
+          autoUpdater.quitAndInstall(false, true)
+        } catch (error) {
+          console.error('[AutoUpdater] Ошибка при установке обновления:', error)
+        }
+        
+        // Альтернативный способ - перезапуск через shell
+        setTimeout(() => {
+          console.log('[AutoUpdater] Принудительный перезапуск...')
+          
+          // Для macOS - запускаем приложение заново
+          if (process.platform === 'darwin') {
+            const appPath = process.execPath
+            exec(`open "${appPath}"`, (error) => {
+              if (error) {
+                console.error('[AutoUpdater] Ошибка перезапуска:', error)
+              } else {
+                console.log('[AutoUpdater] Приложение перезапущено')
+              }
+            })
+          }
+          
+          // Выходим из текущего процесса
+          app.quit()
+        }, 2000)
       }
     })
   })
