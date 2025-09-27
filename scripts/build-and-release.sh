@@ -146,45 +146,60 @@ echo "📢 Создаем релиз v$VERSION на GitHub и загружаем
 if command -v gh &> /dev/null; then
     echo "🚀 Создаем релиз через GitHub CLI..."
     
-    # Собираем список файлов для загрузки
+    # Собираем список файлов для загрузки (только текущей версии)
     FILES=""
     
     # Добавляем файлы macOS
     if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "all" ]; then
-        if ls dist/*.dmg 1> /dev/null 2>&1; then
-            FILES="$FILES dist/*.dmg"
-        fi
-        if ls dist/*.zip 1> /dev/null 2>&1; then
-            FILES="$FILES dist/*.zip"
-        fi
+        for file in dist/*${VERSION}*.dmg; do
+            if [ -f "$file" ]; then
+                FILES="$FILES $file"
+            fi
+        done
+        for file in dist/*${VERSION}*.zip; do
+            if [ -f "$file" ]; then
+                FILES="$FILES $file"
+            fi
+        done
     fi
     
     # Добавляем файлы Windows
     if [ "$PLATFORM" = "win" ] || [ "$PLATFORM" = "all" ]; then
-        if ls dist/*.exe 1> /dev/null 2>&1; then
-            FILES="$FILES dist/*.exe"
-        fi
+        for file in dist/*${VERSION}*.exe; do
+            if [ -f "$file" ]; then
+                FILES="$FILES $file"
+            fi
+        done
     fi
     
     # Добавляем файлы Linux
     if [ "$PLATFORM" = "linux" ] || [ "$PLATFORM" = "all" ]; then
-        if ls dist/*.deb 1> /dev/null 2>&1; then
-            FILES="$FILES dist/*.deb"
-        fi
-        if ls dist/*.AppImage 1> /dev/null 2>&1; then
-            FILES="$FILES dist/*.AppImage"
-        fi
+        for file in dist/*${VERSION}*.deb; do
+            if [ -f "$file" ]; then
+                FILES="$FILES $file"
+            fi
+        done
+        for file in dist/*${VERSION}*.AppImage; do
+            if [ -f "$file" ]; then
+                FILES="$FILES $file"
+            fi
+        done
     fi
     
     # Создаем релиз с найденными файлами
     if [ -n "$FILES" ]; then
+        echo "📁 Загружаем файлы версии $VERSION:"
+        for file in $FILES; do
+            echo "  - $file"
+        done
+        
         gh release create "v$VERSION" \
             --title "Release v$VERSION" \
             --notes "Release v$VERSION - автоматически созданный релиз" \
             $FILES
         echo "✅ Релиз v$VERSION создан и файлы загружены"
     else
-        echo "⚠️  Файлы для загрузки не найдены в dist/"
+        echo "⚠️  Файлы версии $VERSION не найдены в dist/"
         gh release create "v$VERSION" \
             --title "Release v$VERSION" \
             --notes "Release v$VERSION - автоматически созданный релиз"
