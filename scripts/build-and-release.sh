@@ -130,14 +130,49 @@ echo "📢 Создаем релиз на GitHub и загружаем файл�
 # Создаем релиз через GitHub CLI или API
 if command -v gh &> /dev/null; then
     echo "🚀 Создаем релиз через GitHub CLI..."
-    gh release create "v$VERSION" \
-        --title "Release v$VERSION" \
-        --notes "Release v$VERSION" \
-        dist/*.dmg \
-        dist/*.zip \
-        dist/*.exe \
-        dist/*.deb \
-        dist/*.AppImage
+    
+    # Собираем список файлов для загрузки
+    FILES=""
+    
+    # Добавляем файлы macOS
+    if [ "$PLATFORM" = "mac" ] || [ "$PLATFORM" = "all" ]; then
+        if ls dist/*.dmg 1> /dev/null 2>&1; then
+            FILES="$FILES dist/*.dmg"
+        fi
+        if ls dist/*.zip 1> /dev/null 2>&1; then
+            FILES="$FILES dist/*.zip"
+        fi
+    fi
+    
+    # Добавляем файлы Windows
+    if [ "$PLATFORM" = "win" ] || [ "$PLATFORM" = "all" ]; then
+        if ls dist/*.exe 1> /dev/null 2>&1; then
+            FILES="$FILES dist/*.exe"
+        fi
+    fi
+    
+    # Добавляем файлы Linux
+    if [ "$PLATFORM" = "linux" ] || [ "$PLATFORM" = "all" ]; then
+        if ls dist/*.deb 1> /dev/null 2>&1; then
+            FILES="$FILES dist/*.deb"
+        fi
+        if ls dist/*.AppImage 1> /dev/null 2>&1; then
+            FILES="$FILES dist/*.AppImage"
+        fi
+    fi
+    
+    # Создаем релиз с найденными файлами
+    if [ -n "$FILES" ]; then
+        gh release create "v$VERSION" \
+            --title "Release v$VERSION" \
+            --notes "Release v$VERSION" \
+            $FILES
+    else
+        echo "⚠️  Файлы для загрузки не найдены в dist/"
+        gh release create "v$VERSION" \
+            --title "Release v$VERSION" \
+            --notes "Release v$VERSION"
+    fi
 else
     echo "⚠️  GitHub CLI не установлен. Создайте релиз вручную:"
     echo "🔗 https://github.com/KhomenkoRoman/ElectronPosApp/releases/new"
