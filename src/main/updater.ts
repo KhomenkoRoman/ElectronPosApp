@@ -18,11 +18,20 @@ export function setupAutoUpdater(): void {
   const updateUrl = 'https://github.com/KhomenkoRoman/ElectronPosApp/releases/latest/download/'
   autoUpdater.setFeedURL(updateUrl)
   
-  // Дополнительные настройки для macOS
-  if (process.platform === 'darwin') {
-    autoUpdater.allowPrerelease = false // Только стабильные релизы
-    autoUpdater.allowDowngrade = false // Не разрешаем откат версий
-  }
+          // Дополнительные настройки для macOS
+          if (process.platform === 'darwin') {
+            autoUpdater.allowPrerelease = false // Только стабильные релизы
+            autoUpdater.allowDowngrade = false // Не разрешаем откат версий
+            
+            // Отключаем проверку подписи кода для разработки
+            if (!app.isPackaged || process.env.NODE_ENV === 'development') {
+              autoUpdater.requestHeaders = {
+                'User-Agent': 'electron-updater'
+              }
+              // Для не подписанных приложений отключаем проверку подписи
+              autoUpdater.verifyUpdateCodeSignature = false
+            }
+          }
   
   // Логирование для отладки
   autoUpdater.logger = {
@@ -67,12 +76,21 @@ export function setupAutoUpdater(): void {
     console.error('[AutoUpdater] Stack trace:', err.stack)
     
     // Показываем уведомление пользователю об ошибке
+    let errorMessage = err.message
+    let errorDetail = `Ошибка: ${err.message}. Проверьте подключение к интернету и попробуйте позже.`
+    
+    // Специальная обработка ошибки подписи кода
+    if (err.message.includes('code signature')) {
+      errorMessage = 'Ошибка подписи кода'
+      errorDetail = 'Приложение не подписано. Для автоматического обновления необходимо скачать новую версию вручную с GitHub.'
+    }
+    
     const dialogOpts = {
       type: 'error' as const,
       buttons: ['OK'],
       title: 'Ошибка проверки обновлений',
       message: 'Не удалось проверить обновления',
-      detail: `Ошибка: ${err.message}. Проверьте подключение к интернету и попробуйте позже.`
+      detail: errorDetail
     }
 
     dialog.showMessageBox(dialogOpts).then(() => {
