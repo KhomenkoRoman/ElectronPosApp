@@ -5,6 +5,17 @@ import { autoUpdater } from 'electron-updater'
  * Настройка и инициализация автообновления
  */
 export function setupAutoUpdater(): void {
+  // Настройка автообновления
+  autoUpdater.checkForUpdatesAndNotify = false // Отключаем автоматические уведомления
+  autoUpdater.autoDownload = true // Автоматически загружаем обновления
+  autoUpdater.autoInstallOnAppQuit = true // Автоматически устанавливаем при выходе
+  
+  // Логирование для отладки
+  autoUpdater.logger = {
+    info: (message: string) => console.log('[AutoUpdater] INFO:', message),
+    warn: (message: string) => console.warn('[AutoUpdater] WARN:', message),
+    error: (message: string) => console.error('[AutoUpdater] ERROR:', message)
+  }
   // Обработчик проверки обновлений
   autoUpdater.on('checking-for-update', () => {
     console.log('Проверка обновлений...')
@@ -57,5 +68,17 @@ export function setupAutoUpdater(): void {
  * Запуск проверки обновлений
  */
 export function checkForUpdates(): void {
-  autoUpdater.checkForUpdatesAndNotify()
+  console.log('[AutoUpdater] Запуск проверки обновлений...')
+  console.log('[AutoUpdater] Текущая версия:', autoUpdater.currentVersion)
+  
+  autoUpdater.checkForUpdates().catch((error) => {
+    console.error('[AutoUpdater] Ошибка при проверке обновлений:', error)
+  })
+}
+
+/**
+ * Получение текущей версии приложения
+ */
+export function getCurrentVersion(): string {
+  return autoUpdater.currentVersion.version
 }

@@ -161,6 +161,10 @@ if command -v gh &> /dev/null; then
                 FILES="$FILES $file"
             fi
         done
+        # Добавляем файл latest-mac.yml для автообновления
+        if [ -f "dist/latest-mac.yml" ]; then
+            FILES="$FILES dist/latest-mac.yml"
+        fi
     fi
     
     # Добавляем файлы Windows
@@ -170,6 +174,10 @@ if command -v gh &> /dev/null; then
                 FILES="$FILES $file"
             fi
         done
+        # Добавляем файл latest.yml для автообновления Windows
+        if [ -f "dist/latest.yml" ]; then
+            FILES="$FILES dist/latest.yml"
+        fi
     fi
     
     # Добавляем файлы Linux
@@ -184,6 +192,10 @@ if command -v gh &> /dev/null; then
                 FILES="$FILES $file"
             fi
         done
+        # Добавляем файл latest-linux.yml для автообновления Linux
+        if [ -f "dist/latest-linux.yml" ]; then
+            FILES="$FILES dist/latest-linux.yml"
+        fi
     fi
     
     # Создаем релиз с найденными файлами
