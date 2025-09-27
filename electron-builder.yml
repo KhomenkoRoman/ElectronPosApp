@@ -6,6 +6,7 @@ publish:
   provider: github
   owner: KhomenkoRoman
   repo: ElectronPosApp
+  releaseType: release
 files:
   - '!**/.vscode/*'
   - '!src/*'
