@@ -2,6 +2,10 @@ appId: com.softlavka.posapp
 productName: electronposapp
 directories:
   buildResources: build
+publish:
+  provider: github
+  owner: KhomenkoRoman
+  repo: ElectronPosApp
 files:
   - '!**/.vscode/*'
   - '!src/*'

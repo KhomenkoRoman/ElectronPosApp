@@ -1,8 +1,22 @@
+import { useState } from 'react'
 import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
 
 function App(): React.JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [isChecking, setIsChecking] = useState(false)
+
+  const checkForUpdates = async (): Promise<void> => {
+    setIsChecking(true)
+    try {
+      await window.api.checkForUpdates()
+      console.log('Проверка обновлений запущена')
+    } catch (error) {
+      console.error('Ошибка при проверке обновлений:', error)
+    } finally {
+      setIsChecking(false)
+    }
+  }
 
   return (
     <>
@@ -24,6 +38,16 @@ function App(): React.JSX.Element {
         <div className="action">
           <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
             Send IPC
+          </a>
+        </div>
+        <div className="action">
+          <a 
+            target="_blank" 
+            rel="noreferrer" 
+            onClick={checkForUpdates}
+            style={{ opacity: isChecking ? 0.6 : 1 }}
+          >
+            {isChecking ? 'Проверяем...' : 'Проверить обновления'}
           </a>
         </div>
       </div>

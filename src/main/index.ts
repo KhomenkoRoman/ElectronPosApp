@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
-import { setupAutoUpdater, checkForUpdates, getCurrentVersion } from './updater'
+import { setupAutoUpdater, checkForUpdates, getCurrentVersion, manualCheckForUpdates } from './updater'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
 function createWindow(): void {
@@ -59,6 +59,12 @@ app.whenReady().then(() => {
   // IPC для получения версии приложения
   ipcMain.handle('get-app-version', () => {
     return getCurrentVersion()
+  })
+  
+  // IPC для ручной проверки обновлений
+  ipcMain.handle('check-for-updates', () => {
+    manualCheckForUpdates()
+    return true
   })
 
   // Настройка автообновления

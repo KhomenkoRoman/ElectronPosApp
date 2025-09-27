@@ -25,22 +25,26 @@ export function setupAutoUpdater(): void {
   }
   // Обработчик проверки обновлений
   autoUpdater.on('checking-for-update', () => {
-    console.log('Проверка обновлений...')
+    console.log('[AutoUpdater] Проверка обновлений...')
   })
 
   // Обработчик доступного обновления
   autoUpdater.on('update-available', (info) => {
-    console.log('Доступно обновление:', info.version)
+    console.log('[AutoUpdater] Доступно обновление:', info.version)
+    console.log('[AutoUpdater] Информация об обновлении:', JSON.stringify(info, null, 2))
   })
 
   // Обработчик отсутствия обновлений
-  autoUpdater.on('update-not-available', () => {
-    console.log('Обновления не найдены')
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('[AutoUpdater] Обновления не найдены')
+    console.log('[AutoUpdater] Текущая версия:', info.version)
   })
 
   // Обработчик ошибок
   autoUpdater.on('error', (err) => {
-    console.error('Ошибка при проверке обновлений:', err)
+    console.error('[AutoUpdater] Ошибка при проверке обновлений:', err)
+    console.error('[AutoUpdater] Детали ошибки:', err.message)
+    console.error('[AutoUpdater] Stack trace:', err.stack)
   })
 
   // Обработчик прогресса загрузки
@@ -110,9 +114,17 @@ export function setupAutoUpdater(): void {
 export function checkForUpdates(): void {
   console.log('[AutoUpdater] Запуск проверки обновлений...')
   console.log('[AutoUpdater] Текущая версия:', autoUpdater.currentVersion)
+  console.log('[AutoUpdater] Feed URL:', autoUpdater.getFeedURL())
+  console.log('[AutoUpdater] Auto Download:', autoUpdater.autoDownload)
+  console.log('[AutoUpdater] Auto Install on Quit:', autoUpdater.autoInstallOnAppQuit)
   
-  autoUpdater.checkForUpdates().catch((error) => {
+  // Проверяем доступность обновлений
+  autoUpdater.checkForUpdates().then((result) => {
+    console.log('[AutoUpdater] Результат проверки обновлений:', result)
+  }).catch((error) => {
     console.error('[AutoUpdater] Ошибка при проверке обновлений:', error)
+    console.error('[AutoUpdater] Тип ошибки:', error.constructor.name)
+    console.error('[AutoUpdater] Код ошибки:', error.code)
   })
 }
 
@@ -121,4 +133,12 @@ export function checkForUpdates(): void {
  */
 export function getCurrentVersion(): string {
   return autoUpdater.currentVersion.version
+}
+
+/**
+ * Ручная проверка обновлений (для тестирования)
+ */
+export function manualCheckForUpdates(): void {
+  console.log('[AutoUpdater] Ручная проверка обновлений...')
+  checkForUpdates()
 }
