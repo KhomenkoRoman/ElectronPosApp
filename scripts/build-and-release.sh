@@ -98,29 +98,51 @@ if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-# Собираем приложение локально и публикуем
-echo "🔨 Собираем приложение локально и публикуем..."
+# Собираем приложение локально
+echo "🔨 Собираем приложение локально..."
 
 if [ "$PLATFORM" = "all" ]; then
-    echo "📦 Сборка и публикация для всех платформ..."
-    npm run release
+    echo "📦 Сборка для всех платформ..."
+    npm run build:mac
+    npm run build:win
+    npm run build:linux
 elif [ "$PLATFORM" = "mac" ]; then
-    echo "🍎 Сборка и публикация для macOS..."
-    npm run release:mac
+    echo "🍎 Сборка для macOS..."
+    npm run build:mac
 elif [ "$PLATFORM" = "win" ]; then
-    echo "🪟 Сборка и публикация для Windows..."
-    npm run release:win
+    echo "🪟 Сборка для Windows..."
+    npm run build:win
 elif [ "$PLATFORM" = "linux" ]; then
-    echo "🐧 Сборка и публикация для Linux..."
-    npm run release:linux
+    echo "🐧 Сборка для Linux..."
+    npm run build:linux
 else
     echo "❌ Неизвестная платформа: $PLATFORM"
     echo "Доступные платформы: mac, win, linux, all"
     exit 1
 fi
 
-echo "✅ Сборка и публикация завершены!"
+echo "✅ Сборка завершена!"
 echo "📁 Файлы сборки находятся в папке dist/"
+
+# Создаем релиз на GitHub и загружаем файлы
+echo "📢 Создаем релиз на GitHub и загружаем файлы..."
+
+# Создаем релиз через GitHub CLI или API
+if command -v gh &> /dev/null; then
+    echo "🚀 Создаем релиз через GitHub CLI..."
+    gh release create "v$VERSION" \
+        --title "Release v$VERSION" \
+        --notes "Release v$VERSION" \
+        dist/*.dmg \
+        dist/*.zip \
+        dist/*.exe \
+        dist/*.deb \
+        dist/*.AppImage
+else
+    echo "⚠️  GitHub CLI не установлен. Создайте релиз вручную:"
+    echo "🔗 https://github.com/KhomenkoRoman/ElectronPosApp/releases/new"
+    echo "📁 Загрузите файлы из папки dist/"
+fi
 
 echo "🎉 Релиз v$VERSION успешно опубликован!"
 echo "🔗 Проверьте релиз: https://github.com/KhomenkoRoman/ElectronPosApp/releases"
