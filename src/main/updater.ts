@@ -14,6 +14,10 @@ export function setupAutoUpdater(): void {
   // Разрешаем проверку обновлений в режиме разработки (для тестирования)
   autoUpdater.forceDevUpdateConfig = true
   
+  // Программно настраиваем URL для GitHub релизов
+  const updateUrl = 'https://github.com/KhomenkoRoman/ElectronPosApp/releases/latest/download/latest-mac.yml'
+  autoUpdater.setFeedURL(updateUrl)
+  
   // Дополнительные настройки для macOS
   if (process.platform === 'darwin') {
     autoUpdater.allowPrerelease = false // Только стабильные релизы
@@ -120,6 +124,7 @@ export function checkForUpdates(): void {
   console.log('[AutoUpdater] Feed URL:', autoUpdater.getFeedURL())
   console.log('[AutoUpdater] Auto Download:', autoUpdater.autoDownload)
   console.log('[AutoUpdater] Auto Install on Quit:', autoUpdater.autoInstallOnAppQuit)
+  console.log('[AutoUpdater] Force Dev Update Config:', autoUpdater.forceDevUpdateConfig)
   
   // Проверяем доступность обновлений
   autoUpdater.checkForUpdates().then((result) => {
@@ -148,6 +153,11 @@ export function manualCheckForUpdates(): void {
   if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
     console.log('[AutoUpdater] Принудительная проверка в режиме разработки')
     autoUpdater.forceDevUpdateConfig = true
+    
+    // Убеждаемся, что URL настроен правильно
+    const updateUrl = 'https://github.com/KhomenkoRoman/ElectronPosApp/releases/latest/download/latest-mac.yml'
+    autoUpdater.setFeedURL(updateUrl)
+    console.log('[AutoUpdater] URL обновлен для режима разработки:', updateUrl)
   }
   
   checkForUpdates()
