@@ -11,6 +11,9 @@ export function setupAutoUpdater(): void {
   autoUpdater.autoDownload = true // Автоматически загружаем обновления
   autoUpdater.autoInstallOnAppQuit = true // Автоматически устанавливаем при выходе
   
+  // Разрешаем проверку обновлений в режиме разработки (для тестирования)
+  autoUpdater.forceDevUpdateConfig = true
+  
   // Дополнительные настройки для macOS
   if (process.platform === 'darwin') {
     autoUpdater.allowPrerelease = false // Только стабильные релизы
@@ -140,5 +143,12 @@ export function getCurrentVersion(): string {
  */
 export function manualCheckForUpdates(): void {
   console.log('[AutoUpdater] Ручная проверка обновлений...')
+  
+  // Принудительно включаем проверку в режиме разработки
+  if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+    console.log('[AutoUpdater] Принудительная проверка в режиме разработки')
+    autoUpdater.forceDevUpdateConfig = true
+  }
+  
   checkForUpdates()
 }

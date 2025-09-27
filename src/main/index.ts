@@ -69,8 +69,12 @@ app.whenReady().then(() => {
 
   // Настройка автообновления
   setupAutoUpdater()
+  
+  // Проверяем обновления (включая режим разработки для тестирования)
   if (!is.dev) {
     checkForUpdates()
+  } else {
+    console.log('[AutoUpdater] Режим разработки - автообновление можно запустить вручную')
   }
 
   createWindow()
