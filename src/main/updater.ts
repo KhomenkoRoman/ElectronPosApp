@@ -69,7 +69,7 @@ export function setupAutoUpdater(): void {
 }
 
 /**
- * Автоматическая проверка обновлений при запуске (без уведомлений)
+ * Автоматическая проверка обновлений при запуске (с уведомлением только при наличии новой версии)
  */
 export function checkForUpdates(): void {
   console.log('[AutoUpdater] Автоматическая проверка обновлений...')
@@ -79,17 +79,41 @@ export function checkForUpdates(): void {
   autoUpdater.removeAllListeners('update-not-available')
   autoUpdater.removeAllListeners('error')
 
-  // Добавляем обработчики только для логирования
+  // Добавляем обработчики для автоматической проверки
   autoUpdater.on('update-available', (info) => {
     console.log('[AutoUpdater] Найдено обновление:', info.version)
+
+    // Показываем диалог с выбором действия
+    dialog
+      .showMessageBox({
+        type: 'info',
+        buttons: ['Загрузить сейчас', 'Позже'],
+        title: 'Доступно обновление',
+        message: 'Найдена новая версия приложения',
+        detail: `Версия ${info.version} готова к загрузке. Хотите загрузить и установить обновление сейчас?`
+      })
+      .then((result) => {
+        if (result.response === 0) {
+          // Пользователь выбрал "Загрузить сейчас"
+          console.log('[AutoUpdater] Пользователь выбрал загрузку сейчас')
+          // Обновление уже загружается автоматически, просто ждем завершения
+        } else {
+          // Пользователь выбрал "Позже"
+          console.log('[AutoUpdater] Пользователь отложил обновление')
+          // Отменяем автоматическую загрузку
+          autoUpdater.autoDownload = false
+        }
+      })
   })
 
   autoUpdater.on('update-not-available', () => {
     console.log('[AutoUpdater] Версия актуальна')
+    // Никаких уведомлений при актуальной версии
   })
 
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Ошибка:', err.message)
+    // Никаких уведомлений об ошибках при автоматической проверке
   })
 
   autoUpdater.checkForUpdates().catch((error) => {
